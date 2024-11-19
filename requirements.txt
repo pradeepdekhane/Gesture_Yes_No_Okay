@@ -1,4 +1,10 @@
 streamlit
 streamlit-webrtc
 opencv-python
+cv2
 mediapipe
+av
+collections
+os
+pandas
+matplotlib.pyplot
