@@ -8,11 +8,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
-
-# RTC Configuration for WebRTC
-RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+# RTC Configuration with fallback STUN servers
+RTC_CONFIGURATION = {
+    "iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {"urls": ["stun:stun1.l.google.com:19302"]},
+        {"urls": ["stun:stun2.l.google.com:19302"]},
+    ]
+}
 
 # Initialize Mediapipe Hands
 mp_hands = mp.solutions.hands
@@ -49,35 +52,40 @@ class GestureProcessor(VideoProcessorBase):
         self.results_list = []
 
     def recv(self, frame):
-        # Convert frame to NumPy array and flip it
-        frame = frame.to_ndarray(format="bgr24")
-        frame = cv2.flip(frame, 1)
+        try:
+            # Convert frame to NumPy array and flip it
+            frame = frame.to_ndarray(format="bgr24")
+            frame = cv2.flip(frame, 1)
 
-        # Convert to RGB for Mediapipe
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = hands.process(rgb_frame)
+            # Convert to RGB for Mediapipe
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = hands.process(rgb_frame)
 
-        # Default gesture value
-        gesture = "Unknown"
+            # Default gesture value
+            gesture = "Unknown"
 
-        # Process detected hands
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                # Draw landmarks on the frame
-                mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+            # Process detected hands
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    # Draw landmarks on the frame
+                    mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
-                # Extract keypoints
-                landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
-                gesture = classify_gesture(landmarks)
+                    # Extract keypoints
+                    landmarks = [(lm.x, lm.y, lm.z) for lm in hand_landmarks.landmark]
+                    gesture = classify_gesture(landmarks)
 
-                if gesture:  # Only append non-unknown gestures
-                    self.results_list.append(gesture)
+                    if gesture:  # Only append non-unknown gestures
+                        self.results_list.append(gesture)
 
-                # Display gesture on the frame
-                if gesture:
-                    cv2.putText(frame, f"Gesture: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                    # Display gesture on the frame
+                    if gesture:
+                        cv2.putText(frame, f"Gesture: {gesture}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-        return av.VideoFrame.from_ndarray(frame, format="bgr24")
+            return av.VideoFrame.from_ndarray(frame, format="bgr24")
+        except Exception as e:
+            # Log and continue processing
+            print(f"Error in frame processing: {e}")
+            return av.VideoFrame.from_ndarray(frame, format="bgr24")
 
 # Utility to calculate feedback based on gestures
 def calculate_final_feedback(gestures):
@@ -100,6 +108,8 @@ try:
         rtc_configuration=RTC_CONFIGURATION,
         media_stream_constraints={"video": True, "audio": False},
     )
+    if not webrtc_ctx.state.playing:
+        st.warning("Waiting for WebRTC connection to initialize.")
 except Exception as e:
     st.error("WebRTC connection failed. Please refresh the page or check your network.")
     st.write(f"Debug info: {e}")
