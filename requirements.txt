@@ -1,7 +1,7 @@
 streamlit
-opencv-python
-mediapipe
 streamlit-webrtc
+mediapipe
 matplotlib
 pandas
 av
+opencv-python-headless==4.8.1.78
