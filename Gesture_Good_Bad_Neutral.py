@@ -8,8 +8,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 
-# NoneType Import
-NoneType = type(None)
+logging.basicConfig(level=logging.DEBUG)
 
 # RTC Configuration for WebRTC
 RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
@@ -93,12 +92,16 @@ def calculate_final_feedback(gestures):
 st.title("Real-Time Gesture Detection and Feedback")
 
 # Start webcam with WebRTC
-webrtc_ctx = webrtc_streamer(
-    key="gesture-detection",
-    video_processor_factory=GestureProcessor,
-    rtc_configuration=RTC_CONFIGURATION,
-    media_stream_constraints={"video": True, "audio": False},
-)
+try:
+    webrtc_ctx = webrtc_streamer(
+        key="gesture-detection",
+        video_processor_factory=GestureProcessor,
+        rtc_configuration=RTC_CONFIGURATION,
+        media_stream_constraints={"video": True, "audio": False},
+    )
+except Exception as e:
+    st.error("WebRTC connection failed. Please refresh the page or check your network.")
+    st.write(f"Debug info: {e}")
 
 # Save gesture results
 results_file = "gesture_results.csv"
