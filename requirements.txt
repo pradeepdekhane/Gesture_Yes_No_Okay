@@ -2,7 +2,7 @@
 # streamlit-webrtc
 # matplotlib
 # pandas
-# av
+av
 mediapipe
 # mediapipe==0.10.13
 # opencv-python-headless<4.3
