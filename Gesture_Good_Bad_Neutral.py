@@ -8,6 +8,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import cv2
 
+# NoneType Import
+NoneType = type(None)
+
 # RTC Configuration for WebRTC
 RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
 
