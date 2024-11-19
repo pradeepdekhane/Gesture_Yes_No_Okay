@@ -9,4 +9,4 @@ mediapipe
 opencv-python-headless==4.8.1.78
 # opencv-python
 # opencv-python-headless
-
+websocket-client
