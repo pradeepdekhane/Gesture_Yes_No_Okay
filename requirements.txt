@@ -1,12 +1,11 @@
 # streamlit
 streamlit-webrtc
-# matplotlib
-# pandas
+opencv-python-headless
 av
 mediapipe
+# matplotlib
+# pandas
 # mediapipe==0.10.13
 # opencv-python-headless<4.3
-opencv-python-headless==4.8.1.78
+# opencv-python-headless==4.8.1.78
 # opencv-python
-# opencv-python-headless
-websocket-client
