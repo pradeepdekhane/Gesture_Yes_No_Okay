@@ -4,7 +4,6 @@ mediapipe
 streamlit-webrtc
 matplotlib
 pandas
-cv2
 av
 collections
 os
