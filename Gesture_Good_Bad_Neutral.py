@@ -41,7 +41,7 @@ def classify_gesture(landmarks):
     elif thumb_tip[1] > index_tip[1] and thumb_tip[1] > middle_tip[1]:  # Thumb down
         return "Bad"
     else:
-        return None  # Ignore "Unknown"
+        return NoneType  # Ignore "Unknown"
 
 # Streamlit video processor class for real-time gesture detection
 class GestureProcessor(VideoProcessorBase):
@@ -58,7 +58,7 @@ class GestureProcessor(VideoProcessorBase):
         results = hands.process(rgb_frame)
 
         # Default gesture value
-        gesture = None
+        gesture = NoneType
 
         # Process detected hands
         if results.multi_hand_landmarks:
