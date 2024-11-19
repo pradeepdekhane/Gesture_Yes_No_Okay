@@ -5,4 +5,3 @@ streamlit-webrtc
 matplotlib
 pandas
 av
-os
