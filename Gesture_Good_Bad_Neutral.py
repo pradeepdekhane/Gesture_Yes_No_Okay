@@ -106,7 +106,7 @@ try:
         key="gesture-detection",
         video_processor_factory=GestureProcessor,
         rtc_configuration=RTC_CONFIGURATION,
-        media_stream_constraints={"video": True, "audio": False},
+        media_stream_constraints={"video": {"facingMode": "user"}, "audio": False},
     )
     if not webrtc_ctx.state.playing:
         st.warning("Waiting for WebRTC connection to initialize.")
