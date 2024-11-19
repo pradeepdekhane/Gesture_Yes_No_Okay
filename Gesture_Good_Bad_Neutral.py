@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import logging
 import cv2
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 
 # RTC Configuration for WebRTC
 RTC_CONFIGURATION = {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
