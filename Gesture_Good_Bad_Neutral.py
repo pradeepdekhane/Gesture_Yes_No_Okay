@@ -5,6 +5,7 @@ import av
 from collections import Counter
 from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfiguration
 import os
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # RTC Configuration for WebRTC
@@ -23,7 +24,7 @@ def classify_gesture(landmarks):
     ring_tip = landmarks[16]
     pinky_tip = landmarks[20]
 
-    # Logic for "Okay" gesture
+    # Logic for "Neutral" gesture
     if (
         abs(thumb_tip[1] - pinky_tip[1]) < 0.1  # Thumb and pinky roughly horizontal
         and thumb_tip[0] < pinky_tip[0]         # Thumb pointing towards pinky
@@ -97,15 +98,16 @@ webrtc_ctx = webrtc_streamer(
 )
 
 # Save gesture results
+results_file = "gesture_results.csv"
+
 if webrtc_ctx and webrtc_ctx.video_processor:
     if st.button("Save Results"):
         gesture_results = webrtc_ctx.video_processor.results_list
         if gesture_results:
             # Determine user index
-            if os.path.exists("gesture_results.txt"):
-                with open("gesture_results.txt", "r") as file:
-                    lines = file.readlines()
-                user_count = sum(1 for line in lines if line.startswith("User"))
+            if os.path.exists(results_file):
+                results_df = pd.read_csv(results_file)
+                user_count = results_df["User"].nunique()
             else:
                 user_count = 0
 
@@ -113,9 +115,15 @@ if webrtc_ctx and webrtc_ctx.video_processor:
             final_feedback = calculate_final_feedback(gesture_results)
             user_index = user_count + 1
 
-            # Append final feedback to the results file
-            with open("gesture_results.txt", "a") as file:
-                file.write(f"User {user_index}: {final_feedback}\n")
+            # Save final feedback to a CSV file
+            new_entry = pd.DataFrame({"User": [f"User {user_index}"], "Feedback": [final_feedback]})
+            if os.path.exists(results_file):
+                results_df = pd.read_csv(results_file)
+                results_df = pd.concat([results_df, new_entry], ignore_index=True)
+            else:
+                results_df = new_entry
+
+            results_df.to_csv(results_file, index=False)
             st.success(f"Final feedback '{final_feedback}' saved for User {user_index}")
         else:
             st.warning("No gestures detected yet. Perform gestures before saving.")
@@ -123,34 +131,28 @@ if webrtc_ctx and webrtc_ctx.video_processor:
 # Analyze results and display feedback
 if st.button("Analyze and Show Feedback"):
     try:
-        # Read final feedbacks from the file
-        with open("gesture_results.txt", "r") as file:
-            lines = file.readlines()
-
-        # Parse feedbacks for all users
-        user_feedback = []
-        for line in lines:
-            if line.startswith("User"):
-                _, feedback = line.strip().split(": ")
-                user_feedback.append(feedback)
+        # Load results from CSV file
+        results_df = pd.read_csv(results_file)
 
         # Display current user feedback
-        current_user_feedback = user_feedback[-1] if user_feedback else "Neutral"
+        current_user_feedback = results_df.iloc[-1]["Feedback"]
         st.write(f"**Current User Final Feedback**: {current_user_feedback}")
 
         # Display overall feedback percentages
-        feedback_counts = Counter(user_feedback)
-        total_feedbacks = sum(feedback_counts.values())
-        overall_percentages = {
-            feedback: (count / total_feedbacks) * 100 for feedback, count in feedback_counts.items()
-        }
-
-        # Show a pie chart for overall feedback
+        feedback_counts = results_df["Feedback"].value_counts(normalize=True) * 100
         st.write("**Overall Feedback Distribution**:")
         fig, ax = plt.subplots()
-        ax.pie(overall_percentages.values(), labels=overall_percentages.keys(), autopct="%1.1f%%", startangle=90)
-        ax.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+        ax.pie(feedback_counts.values, labels=feedback_counts.index, autopct="%1.1f%%", startangle=90)
+        ax.axis("equal")  # Equal aspect ratio ensures the pie is drawn as a circle.
         st.pyplot(fig)
 
+        # Provide a link to download the CSV file
+        st.markdown("### Download Results")
+        st.download_button(
+            label="Download Results CSV",
+            data=results_df.to_csv(index=False).encode("utf-8"),
+            file_name="gesture_results.csv",
+            mime="text/csv",
+        )
     except FileNotFoundError:
         st.error("Results file not found. Save gesture results first.")
