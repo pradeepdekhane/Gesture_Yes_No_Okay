@@ -3,7 +3,7 @@
 # matplotlib
 # pandas
 # av
-# mediapipe
+mediapipe
 # mediapipe==0.10.13
 # opencv-python-headless<4.3
 # opencv-python-headless==4.8.1.78
