@@ -6,6 +6,7 @@ from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, RTCConfigurati
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import logging
 import cv2
 
 logging.basicConfig(level=logging.DEBUG)
